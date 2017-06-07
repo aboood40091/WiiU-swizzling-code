@@ -291,6 +291,8 @@ uint64_t AddrLib_computeSurfaceAddrFromCoordMicroTiled(uint32_t x, uint32_t y, u
 }
 
 uint64_t AddrLib_computeSurfaceAddrFromCoordMacroTiled(uint32_t x, uint32_t y, uint32_t bpp, uint32_t pitch, uint32_t height, uint32_t tileMode, uint32_t pipeSwizzle, uint32_t bankSwizzle) {
+    uint64_t sampleSlice, numSamples;
+
     uint32_t numPipes = m_pipes;
     uint32_t numBanks = m_banks;
     uint32_t numGroupBits = m_pipeInterleaveBytesBitcount;
@@ -299,9 +301,31 @@ uint64_t AddrLib_computeSurfaceAddrFromCoordMacroTiled(uint32_t x, uint32_t y, u
 
     uint32_t microTileThickness = computeSurfaceThickness(tileMode);
 
+    uint64_t microTileBits = bpp * (microTileThickness * MicroTilePixels);
+    uint64_t microTileBytes = (microTileBits + 7) / 8;
+
     uint64_t pixelIndex = computePixelIndexWithinMicroTile(x, y, bpp, tileMode);
 
-    uint64_t elemOffset = (bpp * pixelIndex) >> 3;
+    uint64_t pixelOffset = bpp * pixelIndex;
+
+    uint64_t elemOffset = pixelOffset;
+
+    uint64_t bytesPerSample = microTileBytes;
+    if (microTileBytes <= m_splitSize) {
+        uint64_t samplesPerSlice = 1;
+        uint64_t numSampleSplits = 1;
+        numSamples = 1;
+        sampleSlice = 0;
+    }
+    else {
+        uint64_t samplesPerSlice = m_splitSize / bytesPerSample;
+        uint64_t numSampleSplits = max(1, 1 / samplesPerSlice);
+        numSamples = samplesPerSlice;
+        sampleSlice = elemOffset / (microTileBits / numSampleSplits);
+        elemOffset %= microTileBits / numSampleSplits;
+    }
+    elemOffset += 7;
+    elemOffset /= 8;
 
     uint64_t pipe = computePipeFromCoordWoRotation(x, y);
     uint64_t bank = computeBankFromCoordWoRotation(x, y);
@@ -309,9 +333,15 @@ uint64_t AddrLib_computeSurfaceAddrFromCoordMacroTiled(uint32_t x, uint32_t y, u
     uint64_t bankPipe = pipe + numPipes * bank;
     uint64_t rotation = computeSurfaceRotationFromTileMode(tileMode);
 
+    uint64_t swizzle = pipeSwizzle + numPipes * bankSwizzle;
+
+    bankPipe ^= numPipes * sampleSlice * ((numBanks >> 1) + 1) ^ swizzle;
     bankPipe %= numPipes * numBanks;
     pipe = bankPipe % numPipes;
     bank = bankPipe / numPipes;
+
+    uint64_t sliceBytes = (height * pitch * microTileThickness * bpp * numSamples + 7) / 8;
+    uint64_t sliceOffset = sliceBytes * (sampleSlice / microTileThickness);
 
     uint64_t macroTilePitch = 8 * m_banks;
     uint64_t macroTileHeight = 8 * m_pipes;
@@ -327,10 +357,10 @@ uint64_t AddrLib_computeSurfaceAddrFromCoordMacroTiled(uint32_t x, uint32_t y, u
     }
 
     uint64_t macroTilesPerRow = pitch / macroTilePitch;
-    uint64_t macroTileBytes = (microTileThickness * bpp * macroTileHeight * macroTilePitch + 7) / 8;
+    uint64_t macroTileBytes = (numSamples * microTileThickness * bpp * macroTileHeight * macroTilePitch + 7) / 8;
     uint64_t macroTileIndexX = x / macroTilePitch;
     uint64_t macroTileIndexY = y / macroTileHeight;
-    uint64_t macroTileOffset = macroTileBytes * (macroTileIndexX + macroTilesPerRow * macroTileIndexY);
+    uint64_t macroTileOffset = (macroTileIndexX + macroTilesPerRow * (macroTileIndexY)) * macroTileBytes;
 
     if (tileMode == 8 || tileMode == 9 || tileMode == 10 || tileMode == 11 || tileMode == 14 || tileMode == 15) {
         static const uint32_t bankSwapOrder[] = { 0, 1, 3, 2, 6, 7, 5, 4, 0, 0 };
@@ -339,13 +369,17 @@ uint64_t AddrLib_computeSurfaceAddrFromCoordMacroTiled(uint32_t x, uint32_t y, u
         bank ^= bankSwapOrder[swapIndex & (m_banks - 1)];
     }
 
-    uint64_t group_mask = (1 << numGroupBits) - 1;
-    uint64_t total_offset = elemOffset + (macroTileOffset >> (numBankBits + numPipeBits));
+    uint64_t groupMask = ((1 << numGroupBits) - 1);
 
-    uint64_t offset_high = (total_offset & ~(group_mask)) << (numBankBits + numPipeBits);
-    uint64_t offset_low = total_offset & group_mask;
-    uint64_t bank_bits = bank << (numPipeBits + numGroupBits);
-    uint64_t pipe_bits = pipe << numGroupBits;
+    uint64_t numSwizzleBits = (numBankBits + numPipeBits);
 
-    return bank_bits | pipe_bits | offset_low | offset_high;
+    uint64_t totalOffset = (elemOffset + ((macroTileOffset + sliceOffset) >> numSwizzleBits));
+
+    uint64_t offsetHigh  = (totalOffset & ~(groupMask)) << numSwizzleBits;
+    uint64_t offsetLow = groupMask & totalOffset;
+
+    uint64_t pipeBits = pipe << numGroupBits;
+    uint64_t bankBits = bank << (numPipeBits + numGroupBits);
+
+    return bankBits | pipeBits | offsetLow | offsetHigh;
 }
