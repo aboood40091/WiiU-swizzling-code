@@ -259,9 +259,29 @@ def AddrLib_computeSurfaceAddrFromCoordMacroTiled(x, y, bpp, pitch, height, tile
 
     microTileThickness = computeSurfaceThickness(tileMode)
 
+    microTileBits = bpp * (microTileThickness * MicroTilePixels)
+    microTileBytes = (microTileBits + 7) // 8
+
     pixelIndex = computePixelIndexWithinMicroTile(x, y, bpp, tileMode)
 
-    elemOffset = (bpp * pixelIndex) >> 3
+    pixelOffset = bpp * pixelIndex
+
+    elemOffset = pixelOffset
+
+    bytesPerSample = microTileBytes
+    if (microTileBytes <= m_splitSize):
+        samplesPerSlice = 1
+        numSampleSplits = 1
+        numSamples = 1
+        sampleSlice = 0
+    else:
+        samplesPerSlice = m_splitSize // bytesPerSample
+        numSampleSplits = max(1, 1 // samplesPerSlice)
+        numSamples = samplesPerSlice
+        sampleSlice = elemOffset // (microTileBits // numSampleSplits)
+        elemOffset %= microTileBits // numSampleSplits
+    elemOffset += 7
+    elemOffset //= 8
 
     pipe = computePipeFromCoordWoRotation(x, y)
     bank = computeBankFromCoordWoRotation(x, y)
@@ -269,9 +289,15 @@ def AddrLib_computeSurfaceAddrFromCoordMacroTiled(x, y, bpp, pitch, height, tile
     bankPipe = pipe + numPipes * bank
     rotation = computeSurfaceRotationFromTileMode(tileMode)
 
+    swizzle = pipeSwizzle + numPipes * bankSwizzle
+
+    bankPipe ^= numPipes * sampleSlice * ((numBanks >> 1) + 1) ^ swizzle
     bankPipe %= numPipes * numBanks
     pipe = bankPipe % numPipes
     bank = bankPipe // numPipes
+
+    sliceBytes = (height * pitch * microTileThickness * bpp * numSamples + 7) // 8
+    sliceOffset = sliceBytes * (sampleSlice // microTileThickness)
 
     macroTilePitch = 8 * m_banks
     macroTileHeight = 8 * m_pipes
@@ -285,10 +311,10 @@ def AddrLib_computeSurfaceAddrFromCoordMacroTiled(x, y, bpp, pitch, height, tile
         macroTileHeight *= 4
 
     macroTilesPerRow = pitch // macroTilePitch
-    macroTileBytes = (microTileThickness * bpp * macroTileHeight * macroTilePitch + 7) // 8
+    macroTileBytes = (numSamples * microTileThickness * bpp * macroTileHeight * macroTilePitch + 7) // 8
     macroTileIndexX = x // macroTilePitch
     macroTileIndexY = y // macroTileHeight
-    macroTileOffset = macroTileBytes * (macroTileIndexX + macroTilesPerRow * macroTileIndexY)
+    macroTileOffset = (macroTileIndexX + macroTilesPerRow * (macroTileIndexY)) * macroTileBytes
 
     if (tileMode == 8 or tileMode == 9 or tileMode == 10 or tileMode == 11 or tileMode == 14 or tileMode == 15):
         bankSwapOrder = [0, 1, 3, 2, 6, 7, 5, 4, 0, 0]
@@ -296,12 +322,16 @@ def AddrLib_computeSurfaceAddrFromCoordMacroTiled(x, y, bpp, pitch, height, tile
         swapIndex = macroTilePitch * macroTileIndexX // bankSwapWidth
         bank ^= bankSwapOrder[swapIndex & (m_banks - 1)]
 
-    group_mask = (1 << numGroupBits) - 1
-    total_offset = elemOffset + (macroTileOffset >> (numBankBits + numPipeBits))
+    groupMask = ((1 << numGroupBits) - 1)
 
-    offset_high = (total_offset & ~(group_mask)) << (numBankBits + numPipeBits)
-    offset_low = total_offset & group_mask
-    bank_bits = bank << (numPipeBits + numGroupBits)
-    pipe_bits = pipe << numGroupBits
+    numSwizzleBits = (numBankBits + numPipeBits)
+
+    totalOffset = (elemOffset + ((macroTileOffset + sliceOffset) >> numSwizzleBits))
  
-    return bank_bits | pipe_bits | offset_low | offset_high
+    offsetHigh  = (totalOffset & ~(groupMask)) << numSwizzleBits
+    offsetLow = groupMask & totalOffset
+
+    pipeBits = pipe << numGroupBits
+    bankBits = bank << (numPipeBits + numGroupBits)
+
+    return bankBits | pipeBits | offsetLow | offsetHigh
