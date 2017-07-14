@@ -20,21 +20,22 @@ m_chipFamily = 2
 MicroTilePixels = 8 * 8
 
 formatHwInfo = b"\x00\x00\x00\x01\x08\x03\x00\x01\x08\x01\x00\x01\x00\x00\x00\x01" \
-    b"\x00\x00\x00\x01\x10\x07\x00\x00\x10\x03\x00\x01\x10\x03\x00\x01" \
-    b"\x10\x0B\x00\x01\x10\x01\x00\x01\x10\x03\x00\x01\x10\x03\x00\x01" \
-    b"\x10\x03\x00\x01\x20\x03\x00\x00\x20\x07\x00\x00\x20\x03\x00\x00" \
-    b"\x20\x03\x00\x01\x20\x05\x00\x00\x00\x00\x00\x00\x20\x03\x00\x00" \
-    b"\x00\x00\x00\x00\x00\x00\x00\x01\x20\x03\x00\x01\x00\x00\x00\x01" \
-    b"\x00\x00\x00\x01\x20\x0B\x00\x01\x20\x0B\x00\x01\x20\x0B\x00\x01" \
-    b"\x40\x05\x00\x00\x40\x03\x00\x00\x40\x03\x00\x00\x40\x03\x00\x00" \
-    b"\x40\x03\x00\x01\x00\x00\x00\x00\x80\x03\x00\x00\x80\x03\x00\x00" \
-    b"\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x01\x10\x01\x00\x00" \
-    b"\x10\x01\x00\x00\x20\x01\x00\x00\x20\x01\x00\x00\x20\x01\x00\x00" \
-    b"\x00\x01\x00\x01\x00\x01\x00\x00\x00\x01\x00\x00\x60\x01\x00\x00" \
-    b"\x60\x01\x00\x00\x40\x01\x00\x01\x80\x01\x00\x01\x80\x01\x00\x01" \
-    b"\x40\x01\x00\x01\x80\x01\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00" \
-    b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" \
-    b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+               b"\x00\x00\x00\x01\x10\x07\x00\x00\x10\x03\x00\x01\x10\x03\x00\x01" \
+               b"\x10\x0B\x00\x01\x10\x01\x00\x01\x10\x03\x00\x01\x10\x03\x00\x01" \
+               b"\x10\x03\x00\x01\x20\x03\x00\x00\x20\x07\x00\x00\x20\x03\x00\x00" \
+               b"\x20\x03\x00\x01\x20\x05\x00\x00\x00\x00\x00\x00\x20\x03\x00\x00" \
+               b"\x00\x00\x00\x00\x00\x00\x00\x01\x20\x03\x00\x01\x00\x00\x00\x01" \
+               b"\x00\x00\x00\x01\x20\x0B\x00\x01\x20\x0B\x00\x01\x20\x0B\x00\x01" \
+               b"\x40\x05\x00\x00\x40\x03\x00\x00\x40\x03\x00\x00\x40\x03\x00\x00" \
+               b"\x40\x03\x00\x01\x00\x00\x00\x00\x80\x03\x00\x00\x80\x03\x00\x00" \
+               b"\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x01\x10\x01\x00\x00" \
+               b"\x10\x01\x00\x00\x20\x01\x00\x00\x20\x01\x00\x00\x20\x01\x00\x00" \
+               b"\x00\x01\x00\x01\x00\x01\x00\x00\x00\x01\x00\x00\x60\x01\x00\x00" \
+               b"\x60\x01\x00\x00\x40\x01\x00\x01\x80\x01\x00\x01\x80\x01\x00\x01" \
+               b"\x40\x01\x00\x01\x80\x01\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00" \
+               b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" \
+               b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+
 
 def surfaceGetBitsPerPixel(surfaceFormat):
     hwFormat = surfaceFormat & 0x3F
@@ -42,16 +43,18 @@ def surfaceGetBitsPerPixel(surfaceFormat):
 
     return bpp
 
+
 def computeSurfaceThickness(tileMode):
     thickness = 1
 
-    if (tileMode == 3 or tileMode == 7 or tileMode == 11 or tileMode == 13 or tileMode == 15):
+    if tileMode == 3 or tileMode == 7 or tileMode == 11 or tileMode == 13 or tileMode == 15:
         thickness = 4
 
-    elif (tileMode == 16 or tileMode == 17):
+    elif tileMode == 16 or tileMode == 17:
         thickness = 8
 
     return thickness
+
 
 def computePixelIndexWithinMicroTile(x, y, bpp, tileMode, z=0):
     pixelBit6 = 0
@@ -75,7 +78,7 @@ def computePixelIndexWithinMicroTile(x, y, bpp, tileMode, z=0):
         pixelBit4 = (y & 2) >> 1
         pixelBit5 = (y & 4) >> 2
 
-    elif (bpp == 0x20 or bpp == 0x60):
+    elif bpp == 0x20 or bpp == 0x60:
         pixelBit0 = x & 1
         pixelBit1 = (x & 2) >> 1
         pixelBit2 = y & 1
@@ -118,9 +121,11 @@ def computePixelIndexWithinMicroTile(x, y, bpp, tileMode, z=0):
             32 * pixelBit5 | 16 * pixelBit4 | 8 * pixelBit3 |
             4 * pixelBit2 | pixelBit0 | 2 * pixelBit1)
 
+
 def computePipeFromCoordWoRotation(x, y):
     # hardcoded to assume 2 pipes
     return ((y >> 3) ^ (x >> 3)) & 1
+
 
 def computeBankFromCoordWoRotation(x, y):
     numPipes = m_pipes
@@ -133,55 +138,44 @@ def computeBankFromCoordWoRotation(x, y):
 
     elif numBanks == 8:
         bankBit0a = ((y // (32 * numPipes)) ^ (x >> 3)) & 1
-        bank = bankBit0a | 2 * (((y // (32 * numPipes)) ^ (y // (16 * numPipes) ^ (x >> 4))) & 1) | 4 * (((y // (8 * numPipes)) ^ (x >> 5)) & 1)
+        bank = (bankBit0a | 2 * (((y // (32 * numPipes)) ^ (y // (16 * numPipes) ^ (x >> 4))) & 1) |
+            4 * (((y // (8 * numPipes)) ^ (x >> 5)) & 1))
 
     return bank
 
-def computeSurfaceRotationFromTileMode(tileMode):
-    pipes = m_pipes
-    result = 0
-
-    if (tileMode == 4 or tileMode == 5 or tileMode == 6 or tileMode == 7 or tileMode == 8 or tileMode == 9 or tileMode == 10 or tileMode == 11):
-        result = pipes * ((m_banks >> 1) - 1)
-
-    elif (tileMode == 12 or tileMode == 13 or tileMode == 14 or tileMode == 15):
-        if not pipes < 4:
-            result = (pipes >> 1) - 1
-
-        else:
-            result = 1
-
-    return result
 
 def isThickMacroTiled(tileMode):
     thickMacroTiled = 0
 
-    if (tileMode == 7 or tileMode == 11 or tileMode == 13 or tileMode == 15):
+    if tileMode == 7 or tileMode == 11 or tileMode == 13 or tileMode == 15:
         thickMacroTiled = 1
 
     return thickMacroTiled
 
+
 def isBankSwappedTileMode(tileMode):
     bankSwapped = 0
 
-    if (tileMode == 8 or tileMode == 9 or tileMode == 10 or tileMode == 11 or tileMode == 14 or tileMode == 15):
+    if tileMode == 8 or tileMode == 9 or tileMode == 10 or tileMode == 11 or tileMode == 14 or tileMode == 15:
         bankSwapped = 1
 
     return bankSwapped
 
+
 def computeMacroTileAspectRatio(tileMode):
     ratio = 1
 
-    if (tileMode == 8 or tileMode == 12 or tileMode == 14):
+    if tileMode == 8 or tileMode == 12 or tileMode == 14:
         ratio = 1
 
-    elif (tileMode == 5 or tileMode == 9):
+    elif tileMode == 5 or tileMode == 9:
         ratio = 2
 
-    elif (tileMode == 6 or tileMode == 10):
+    elif tileMode == 6 or tileMode == 10:
         ratio = 4
 
     return ratio
+
 
 def computeSurfaceBankSwappedWidth(tileMode, bpp, pitch, numSamples=1):
     if isBankSwappedTileMode(tileMode) == 0: return 0
@@ -208,7 +202,7 @@ def computeSurfaceBankSwappedWidth(tileMode, bpp, pitch, numSamples=1):
     factor = computeMacroTileAspectRatio(tileMode)
     swapTiles = max(1, (swapSize >> 1) // bpp)
 
-    swapWidth = swapTiles * 8 * numBanks;
+    swapWidth = swapTiles * 8 * numBanks
     heightBytes = numSamples * factor * numPipes * bpp // slicesPerTile
     swapMax = numPipes * numBanks * rowSize // heightBytes
     swapMin = groupSize * 8 * numBanks // bytesPerTileSlice
@@ -220,7 +214,8 @@ def computeSurfaceBankSwappedWidth(tileMode, bpp, pitch, numSamples=1):
 
     return bankSwapWidth
 
-def AddrLib_computeSurfaceAddrFromCoordLinear(x, y, bpp, pitch, height):
+
+def AddrLib_computeSurfaceAddrFromCoordLinear(x, y, bpp, pitch):
     rowOffset = y * pitch
     pixOffset = x
 
@@ -229,7 +224,8 @@ def AddrLib_computeSurfaceAddrFromCoordLinear(x, y, bpp, pitch, height):
 
     return addr
 
-def AddrLib_computeSurfaceAddrFromCoordMicroTiled(x, y, bpp, pitch, height, tileMode):
+
+def AddrLib_computeSurfaceAddrFromCoordMicroTiled(x, y, bpp, pitch, tileMode):
     microTileThickness = 1
 
     if tileMode == 3:
@@ -250,6 +246,7 @@ def AddrLib_computeSurfaceAddrFromCoordMicroTiled(x, y, bpp, pitch, height, tile
 
     return pixelOffset + microTileOffset
 
+
 def AddrLib_computeSurfaceAddrFromCoordMacroTiled(x, y, bpp, pitch, height, tileMode, pipeSwizzle, bankSwizzle):
     numPipes = m_pipes
     numBanks = m_banks
@@ -269,9 +266,7 @@ def AddrLib_computeSurfaceAddrFromCoordMacroTiled(x, y, bpp, pitch, height, tile
     elemOffset = pixelOffset
 
     bytesPerSample = microTileBytes
-    if (microTileBytes <= m_splitSize):
-        samplesPerSlice = 1
-        numSampleSplits = 1
+    if microTileBytes <= m_splitSize:
         numSamples = 1
         sampleSlice = 0
     else:
@@ -287,11 +282,10 @@ def AddrLib_computeSurfaceAddrFromCoordMacroTiled(x, y, bpp, pitch, height, tile
     bank = computeBankFromCoordWoRotation(x, y)
 
     bankPipe = pipe + numPipes * bank
-    rotation = computeSurfaceRotationFromTileMode(tileMode)
 
-    swizzle = pipeSwizzle + numPipes * bankSwizzle
+    swizzle_ = pipeSwizzle + numPipes * bankSwizzle
 
-    bankPipe ^= numPipes * sampleSlice * ((numBanks >> 1) + 1) ^ swizzle
+    bankPipe ^= numPipes * sampleSlice * ((numBanks >> 1) + 1) ^ swizzle_
     bankPipe %= numPipes * numBanks
     pipe = bankPipe % numPipes
     bank = bankPipe // numPipes
@@ -302,11 +296,11 @@ def AddrLib_computeSurfaceAddrFromCoordMacroTiled(x, y, bpp, pitch, height, tile
     macroTilePitch = 8 * m_banks
     macroTileHeight = 8 * m_pipes
 
-    if (tileMode == 5 or tileMode == 9): # GX2_TILE_MODE_2D_TILED_THIN4 and GX2_TILE_MODE_2B_TILED_THIN2
+    if tileMode == 5 or tileMode == 9:  # GX2_TILE_MODE_2D_TILED_THIN4 and GX2_TILE_MODE_2B_TILED_THIN2
         macroTilePitch >>= 1
         macroTileHeight *= 2
 
-    elif (tileMode == 6 or tileMode == 10): # GX2_TILE_MODE_2D_TILED_THIN4 and GX2_TILE_MODE_2B_TILED_THIN4
+    elif tileMode == 6 or tileMode == 10:  # GX2_TILE_MODE_2D_TILED_THIN4 and GX2_TILE_MODE_2B_TILED_THIN4
         macroTilePitch >>= 2
         macroTileHeight *= 4
 
@@ -314,9 +308,9 @@ def AddrLib_computeSurfaceAddrFromCoordMacroTiled(x, y, bpp, pitch, height, tile
     macroTileBytes = (numSamples * microTileThickness * bpp * macroTileHeight * macroTilePitch + 7) // 8
     macroTileIndexX = x // macroTilePitch
     macroTileIndexY = y // macroTileHeight
-    macroTileOffset = (macroTileIndexX + macroTilesPerRow * (macroTileIndexY)) * macroTileBytes
+    macroTileOffset = (macroTileIndexX + macroTilesPerRow * macroTileIndexY) * macroTileBytes
 
-    if (tileMode == 8 or tileMode == 9 or tileMode == 10 or tileMode == 11 or tileMode == 14 or tileMode == 15):
+    if tileMode == 8 or tileMode == 9 or tileMode == 10 or tileMode == 11 or tileMode == 14 or tileMode == 15:
         bankSwapOrder = [0, 1, 3, 2, 6, 7, 5, 4, 0, 0]
         bankSwapWidth = computeSurfaceBankSwappedWidth(tileMode, bpp, pitch)
         swapIndex = macroTilePitch * macroTileIndexX // bankSwapWidth
@@ -327,8 +321,8 @@ def AddrLib_computeSurfaceAddrFromCoordMacroTiled(x, y, bpp, pitch, height, tile
     numSwizzleBits = (numBankBits + numPipeBits)
 
     totalOffset = (elemOffset + ((macroTileOffset + sliceOffset) >> numSwizzleBits))
- 
-    offsetHigh  = (totalOffset & ~(groupMask)) << numSwizzleBits
+
+    offsetHigh = (totalOffset & ~groupMask) << numSwizzleBits
     offsetLow = groupMask & totalOffset
 
     pipeBits = pipe << numGroupBits
