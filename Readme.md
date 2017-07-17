@@ -3,6 +3,7 @@ Wii U swizzling algorithm, in multiple languages! :D
   
 ## Current languages
 * C
+* Cython
 * Python  
 More will come later.  
   

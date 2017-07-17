@@ -17,7 +17,7 @@ m_splitSize = 2048
 
 m_chipFamily = 2
 
-MicroTilePixels = 8 * 8
+MicroTilePixels = 64
 
 formatHwInfo = b"\x00\x00\x00\x01\x08\x03\x00\x01\x08\x01\x00\x01\x00\x00\x00\x01" \
                b"\x00\x00\x00\x01\x10\x07\x00\x00\x10\x03\x00\x01\x10\x03\x00\x01" \
@@ -147,7 +147,7 @@ def computeBankFromCoordWoRotation(x, y):
 def isThickMacroTiled(tileMode):
     thickMacroTiled = 0
 
-    if tileMode == 7 or tileMode == 11 or tileMode == 13 or tileMode == 15:
+    if tileMode in [7, 11, 13, 15]:
         thickMacroTiled = 1
 
     return thickMacroTiled
@@ -156,7 +156,7 @@ def isThickMacroTiled(tileMode):
 def isBankSwappedTileMode(tileMode):
     bankSwapped = 0
 
-    if tileMode == 8 or tileMode == 9 or tileMode == 10 or tileMode == 11 or tileMode == 14 or tileMode == 15:
+    if tileMode in [8, 9, 10, 11, 14, 15]:
         bankSwapped = 1
 
     return bankSwapped
@@ -165,13 +165,13 @@ def isBankSwappedTileMode(tileMode):
 def computeMacroTileAspectRatio(tileMode):
     ratio = 1
 
-    if tileMode == 8 or tileMode == 12 or tileMode == 14:
+    if tileMode in [8, 12, 14]:
         ratio = 1
 
-    elif tileMode == 5 or tileMode == 9:
+    elif tileMode in [5, 9]:
         ratio = 2
 
-    elif tileMode == 6 or tileMode == 10:
+    elif tileMode in [6, 10]:
         ratio = 4
 
     return ratio
